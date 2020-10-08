@@ -6,6 +6,7 @@ use Drupal\Core\Field\FieldTypePluginManagerInterface;
 use Drupal\field\Plugin\migrate\source\d7\FieldInstancePerFormDisplay;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\location_migration\Plugin\migrate\DestinationFieldTrait;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 

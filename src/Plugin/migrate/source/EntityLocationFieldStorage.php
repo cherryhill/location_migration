@@ -6,12 +6,12 @@ namespace Drupal\location_migration\Plugin\migrate\source;
  * Drupal 7 geolocation field storage source for D7 location entity data.
  *
  * @MigrateSource(
- *   id = "d7_entity_location",
+ *   id = "d7_entity_location_field",
  *   core = {7},
- *   source_module = "location",
+ *   source_module = "location"
  * )
  */
-class EntityLocationFieldStorage extends EntityLocationFieldBase {
+class EntityLocationFieldStorage extends EntityLocationFieldInstance {
 
   /**
    * {@inheritdoc}

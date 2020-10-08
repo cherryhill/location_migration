@@ -47,24 +47,33 @@ class MigrationPluginAlterer {
 
     $node_migration_ids = array_keys(
       array_filter($d7_definitions, function (array $migration_plugin) {
+        $migration_tags = $migration_plugin['migration_tags'] ?? [];
         $destination_plugin = $migration_plugin['destination']['plugin'] ?? NULL;
-        return $destination_plugin && in_array($destination_plugin, [
-          'entity:node',
-          'entity_revision:node',
-          'entity_complete:node',
-        ], TRUE);
+        return $destination_plugin &&
+          !in_array(LocationMigration::LOCATION_MIGRATION_ALTER_DONE, $migration_tags, TRUE) &&
+          in_array($destination_plugin, [
+            'entity:node',
+            'entity_revision:node',
+            'entity_complete:node',
+          ], TRUE);
       })
     );
     $taxonomy_migration_ids = array_keys(
       array_filter($d7_definitions, function (array $migration_plugin) {
+        $migration_tags = $migration_plugin['migration_tags'] ?? [];
         $destination_plugin = $migration_plugin['destination']['plugin'] ?? NULL;
-        return $destination_plugin === 'entity:taxonomy_term';
+        return $destination_plugin &&
+          !in_array(LocationMigration::LOCATION_MIGRATION_ALTER_DONE, $migration_tags, TRUE) &&
+          $destination_plugin === 'entity:taxonomy_term';
       })
     );
     $user_migration_ids = array_keys(
       array_filter($d7_definitions, function (array $migration_plugin) {
+        $migration_tags = $migration_plugin['migration_tags'] ?? [];
         $destination_plugin = $migration_plugin['destination']['plugin'] ?? NULL;
-        return $destination_plugin === 'entity:user';
+        return $destination_plugin &&
+          !in_array(LocationMigration::LOCATION_MIGRATION_ALTER_DONE, $migration_tags, TRUE) &&
+          $destination_plugin === 'entity:user';
       })
     );
 
@@ -88,7 +97,7 @@ class MigrationPluginAlterer {
 
     // Add "entity location" field config migration dependencies to those
     // content migrations that needs them.
-    $entity_migration_plugin_ids_with_entity_locations = [];
+    $entity_migration_plugin_ids_with_entity_location = [];
     foreach ($entity_location_migrations as $entity_location_migration_plugin_id => $entity_location_migration_plugin_def) {
       $entity_type_id = $entity_location_migration_plugin_def['source']['entity_type'];
       $bundle = $entity_location_migration_plugin_def['source']['bundle'] ?? NULL;
@@ -137,19 +146,23 @@ class MigrationPluginAlterer {
       }
 
       if (!empty($migration_ids_to_extend)) {
-        $preexisting_ids = $entity_migration_plugin_ids_with_entity_locations[$entity_type_id] ?? [];
-        $entity_migration_plugin_ids_with_entity_locations[$entity_type_id] = array_unique(
+        $preexisting_ids = $entity_migration_plugin_ids_with_entity_location[$entity_type_id] ?? [];
+        $entity_migration_plugin_ids_with_entity_location[$entity_type_id] = array_unique(
           array_merge($preexisting_ids, $migration_ids_to_extend)
         );
       }
       foreach ($migration_ids_to_extend as $migration_id_to_extend) {
+        $definition_tags = $definitions[$migration_id_to_extend]['migration_tags'] ?? [];
         $definitions[$migration_id_to_extend]['migration_dependencies']['required'][] = $entity_location_migration_plugin_id;
+        $definitions[$migration_id_to_extend]['migration_tags'] = array_unique(
+          array_merge($definition_tags, [LocationMigration::LOCATION_MIGRATION_ALTER_DONE])
+        );
       }
     }
 
     // We have to determine which entity locations might have multiple values.
     $entity_location_cardinalities = [];
-    $elfc_source = static::getSourcePlugin('d7_entity_location_instance');
+    $elfc_source = static::getSourcePlugin('d7_entity_location_field_instance');
     assert($elfc_source instanceof EntityLocationFieldInstance);
     foreach ($elfc_source as $elfc_source_row) {
       assert($elfc_source_row instanceof Row);
@@ -167,49 +180,39 @@ class MigrationPluginAlterer {
 
     // Add the field value processes to the content entity migrations that needs
     // them.
-    foreach ($entity_migration_plugin_ids_with_entity_locations as $entity_type_id => $content_migration_plugin_ids) {
+    foreach ($entity_migration_plugin_ids_with_entity_location as $entity_type_id => $content_migration_plugin_ids) {
 
       foreach ($content_migration_plugin_ids as $content_migration_plugin_id) {
         $definition = &$definitions[$content_migration_plugin_id];
         $bundle = $definition['source']['node_type'] ?? $definition['source']['bundle'] ?? 'user';
         $entity_location_cardinality = $entity_location_cardinalities[$entity_type_id][$bundle];
         $base_name = LocationMigration::getEntityLocationFieldBaseName($entity_type_id, $entity_location_cardinality);
+        $process_base = ['entity_type_id' => $entity_type_id];
 
         // Location to address field.
         $definition['process'][$base_name] = [
           'plugin' => 'location_to_address',
-          'entity_type_id' => $entity_type_id,
-        ];
-
+        ] + $process_base;
         // Location to geolocation field.
         $definition['process'][LocationMigration::getGeolocationFieldName($base_name)] = [
           'plugin' => 'location_to_geolocation',
-          'entity_type_id' => $entity_type_id,
-        ];
-
+        ] + $process_base;
         // Location email to email field.
         $definition['process'][LocationMigration::getEmailFieldName($base_name)] = [
           'plugin' => 'location_email_to_email',
-          'entity_type_id' => $entity_type_id,
-        ];
-
+        ] + $process_base;
         // Location fax to telephone field.
         $definition['process'][LocationMigration::getFaxFieldName($base_name)] = [
           'plugin' => 'location_fax_to_telephone',
-          'entity_type_id' => $entity_type_id,
-        ];
-
+        ] + $process_base;
         // Location phone to telephone field.
         $definition['process'][LocationMigration::getPhoneFieldName($base_name)] = [
           'plugin' => 'location_phone_to_telephone',
-          'entity_type_id' => $entity_type_id,
-        ];
-
+        ] + $process_base;
         // Location "www" to link field.
         $definition['process'][LocationMigration::getWwwFieldName($base_name)] = [
           'plugin' => 'location_www_to_link',
-          'entity_type_id' => $entity_type_id,
-        ];
+        ] + $process_base;
       }
     }
   }

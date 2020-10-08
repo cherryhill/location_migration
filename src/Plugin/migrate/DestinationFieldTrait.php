@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\location_migration\Plugin\migrate\source;
+namespace Drupal\location_migration\Plugin\migrate;
 
 use Drupal\link\LinkItemInterface;
 use Drupal\location_migration\LocationMigration;

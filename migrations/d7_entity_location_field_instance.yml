@@ -1,11 +1,11 @@
-id: d7_entity_location_instance
+id: d7_entity_location_field_instance
 label: Entity location field instance
 migration_tags:
   - Drupal 7
   - Configuration
 deriver: Drupal\location_migration\Plugin\migrate\D7EntityLocationDeriver
 source:
-  plugin: d7_entity_location_instance
+  plugin: d7_entity_location_field_instance
   constants:
     required: false
     status: true
@@ -32,4 +32,4 @@ destination:
   plugin: entity:field_config
 migration_dependencies:
   required:
-    - d7_entity_location
+    - d7_entity_location_field

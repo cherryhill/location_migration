@@ -1,11 +1,11 @@
-id: d7_entity_location_formatter_settings
+id: d7_entity_location_field_formatter
 label: Entity location field formatter configuration
 migration_tags:
   - Drupal 7
   - Configuration
-deriver: Drupal\location_migration\Plugin\migrate\D7LocationFieldDeriver
+deriver: Drupal\location_migration\Plugin\migrate\D7EntityLocationDeriver
 source:
-  plugin: d7_entity_location_formatter
+  plugin: d7_entity_location_field_formatter
   constants:
     third_party_settings: { }
 process:
@@ -26,5 +26,5 @@ destination:
   plugin: component_entity_display
 migration_dependencies:
   required:
-    - d7_entity_location_instance
+    - d7_entity_location_field_instance
     - d7_view_modes

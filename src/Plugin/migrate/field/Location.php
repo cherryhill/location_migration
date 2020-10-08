@@ -2,11 +2,9 @@
 
 namespace Drupal\location_migration\Plugin\migrate\field;
 
-use Drupal\Core\Plugin\PluginBase;
 use Drupal\location_migration\LocationMigration;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate_drupal\Plugin\migrate\field\FieldPluginBase;
-use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 
 /**
  * Migration process plugin for migrations related to Drupal 7 location fields.
@@ -89,63 +87,17 @@ class Location extends FieldPluginBase {
     ]);
 
     // Add the extra field's migrations as required dependencies.
-    $required_dependency_base_plugin_ids = [
-      'd7_field_location_instance',
-      'd7_field_location_widget',
-    ];
-    $derivative_suffixes = [
-      $data['entity_type'],
-      $data['bundle'],
-    ];
-    $this->mergeDerivedRequiredDependencies($migration_dependencies, $required_dependency_base_plugin_ids, $derivative_suffixes);
-    $migration->set('migration_dependencies', $migration_dependencies);
-  }
-
-  /**
-   * Merges derivative migration dependencies.
-   *
-   * @param array $migration_dependencies
-   *   The array of the migration dependencies.
-   * @param string[] $base_plugin_ids
-   *   An array of base plugin IDs of the required, additional migration
-   *   dependencies.
-   * @param string[] $derivative_pieces
-   *   An array of the derivative pieces.
-   */
-  protected function mergeDerivedRequiredDependencies(array &$migration_dependencies, array $base_plugin_ids, array $derivative_pieces): void {
-    $dependencies_to_add = [];
-    $derivative_suffix = implode(PluginBase::DERIVATIVE_SEPARATOR, $derivative_pieces);
-    foreach ($base_plugin_ids as $base_plugin_id) {
-      $dependencies_to_add[] = implode(PluginBase::DERIVATIVE_SEPARATOR, [
-        $base_plugin_id,
-        $derivative_suffix,
-      ]);
-    }
-
-    $migration_dependencies['required'] = array_unique(
-      array_merge(
-        array_values($migration_dependencies['required']),
-        $dependencies_to_add
-      )
+    LocationMigration::mergeDerivedRequiredDependencies(
+      $migration_dependencies,
+      ['d7_field_location'],
+      [$data['entity_type']],
+      );
+    LocationMigration::mergeDerivedRequiredDependencies(
+      $migration_dependencies,
+      ['d7_field_location_instance'],
+      [$data['entity_type'], $data['bundle']],
     );
-  }
-
-  /**
-   * Checks if a given module is enabled in the source Drupal database.
-   *
-   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
-   *   The current migration.
-   * @param string $module_name
-   *   Name of module to check.
-   *
-   * @return bool
-   *   TRUE if module is enabled on the origin system, FALSE if not.
-   */
-  protected function moduleExistsInSource(MigrationInterface $migration, string $module_name): bool {
-    $source = $migration->getSourcePlugin();
-    assert($source instanceof DrupalSqlBase);
-    $system_data = $source->getSystemData();
-    return !empty($system_data['module'][$module_name]['status']);
+    $migration->set('migration_dependencies', $migration_dependencies);
   }
 
 }

@@ -6,12 +6,12 @@ namespace Drupal\location_migration\Plugin\migrate\source;
  * Drupal 7 geolocation field formatter source for D7 location entity data.
  *
  * @MigrateSource(
- *   id = "d7_entity_location_formatter",
+ *   id = "d7_entity_location_field_formatter",
  *   core = {7},
- *   source_module = "location",
+ *   source_module = "location"
  * )
  */
-class EntityLocationFieldFormatter extends EntityLocationFieldBase {
+class EntityLocationFieldFormatter extends EntityLocationFieldInstance {
 
   /**
    * {@inheritdoc}

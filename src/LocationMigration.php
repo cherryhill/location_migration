@@ -2,6 +2,7 @@
 
 namespace Drupal\location_migration;
 
+use Drupal\Core\Plugin\PluginBase;
 use Drupal\field\Entity\FieldStorageConfig;
 
 /**
@@ -10,6 +11,13 @@ use Drupal\field\Entity\FieldStorageConfig;
  * @internal
  */
 final class LocationMigration {
+
+  /**
+   * Tag for migration plugin definitions that are already processed.
+   *
+   * @var string
+   */
+  const LOCATION_MIGRATION_ALTER_DONE = 'Processed by Location Migration';
 
   /**
    * Migration tag for migrations of locations that aren't stored in a field.
@@ -126,6 +134,42 @@ final class LocationMigration {
     }
 
     return implode('_', $pieces);
+  }
+
+  /**
+   * Merges derivative migration dependencies.
+   *
+   * @param array $migration_dependencies
+   *   The array of the migration dependencies.
+   * @param string[] $base_plugin_ids
+   *   An array of base plugin IDs of the required, additional migration
+   *   dependencies.
+   * @param string[] $derivative_pieces
+   *   An array of the derivative pieces.
+   */
+  public static function mergeDerivedRequiredDependencies(array &$migration_dependencies, array $base_plugin_ids, array $derivative_pieces): void {
+    $dependencies_to_add = [];
+    $derivative_suffix = implode(PluginBase::DERIVATIVE_SEPARATOR, $derivative_pieces);
+    foreach ($base_plugin_ids as $base_plugin_id) {
+      $dependencies_to_add[] = implode(PluginBase::DERIVATIVE_SEPARATOR, [
+        $base_plugin_id,
+        $derivative_suffix,
+      ]);
+    }
+
+    // Remove non-derived dependencies.
+    foreach ($base_plugin_ids as $base_plugin_id) {
+      if (($key = array_search($base_plugin_id, $migration_dependencies['required'])) !== FALSE) {
+        unset($migration_dependencies['required'][$key]);
+      }
+    }
+
+    $migration_dependencies['required'] = array_unique(
+      array_merge(
+        array_values($migration_dependencies['required']),
+        $dependencies_to_add
+      )
+    );
   }
 
   /**

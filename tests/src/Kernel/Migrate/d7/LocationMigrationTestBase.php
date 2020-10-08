@@ -3,8 +3,6 @@
 namespace Drupal\Tests\location_migration\Kernel\Migrate\d7;
 
 use Drupal\Core\Site\Settings;
-use Drupal\migrate\Plugin\MigrationInterface;
-use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
 use Drupal\Tests\migrate_drupal\Kernel\MigrateDrupalTestBase;
 
 /**
@@ -100,95 +98,39 @@ abstract class LocationMigrationTestBase extends MigrateDrupalTestBase {
       'd7_field_instance',
       'd7_field_formatter_settings',
       'd7_field_instance_widget_settings',
-      'd7_filter_format',
     ]);
     $this->stopCollectingMessages();
 
-    $this->startCollectingMessages();
     $this->executeMigrations([
       'd7_taxonomy_vocabulary',
-      'd7_entity_location:taxonomy_term',
-      'd7_entity_location_instance:taxonomy_term:vocabulary_1',
-      'd7_entity_location_widget_settings:taxonomy_term:vocabulary_1',
+      'd7_entity_location_field:taxonomy_term',
+      'd7_entity_location_field_instance:taxonomy_term:vocabulary_1',
+      'd7_entity_location_field_widget:taxonomy_term:vocabulary_1',
+      'd7_entity_location_field_formatter:taxonomy_term:vocabulary_1',
       'd7_taxonomy_term:vocabulary_1',
-      'd7_entity_location_formatter_settings:taxonomy_term:vocabulary_1',
     ]);
-    $this->stopCollectingMessages();
-    $this->assertEmpty($this->migrateMessages);
 
-    $this->startCollectingMessages();
     $this->executeMigrations([
       'd7_user_role',
-      'd7_entity_location:user',
-      'd7_entity_location_instance:user:user',
-      'd7_entity_location_widget_settings:user:user',
+      'd7_entity_location_field:user',
+      'd7_entity_location_field_instance:user:user',
+      'd7_entity_location_field_widget:user:user',
+      'd7_entity_location_field_formatter:user:user',
       'd7_user',
-      'd7_entity_location_formatter_settings:user:user',
     ]);
-    $this->stopCollectingMessages();
-    $this->assertEmpty($this->migrateMessages);
 
-    $this->startCollectingMessages();
-    $this->executeMigrationWithDependencies($classic_node_migration ? 'd7_node' : 'd7_node_complete');
-    $this->stopCollectingMessages();
-    $this->assertEmpty($this->migrateMessages);
-
-    $this->startCollectingMessages();
+    $node_migration_base = $classic_node_migration ? 'd7_node' : 'd7_node_complete';
     $this->executeMigrations([
+      'd7_field_location:node',
+      'd7_field_location_instance:node',
+      'd7_entity_location_field:node',
+      'd7_entity_location_field_instance:node',
+      'd7_entity_location_field_widget:node',
+      'd7_entity_location_field_formatter:node',
+      $node_migration_base,
       'd7_field_location_widget:node',
       'd7_field_location_formatter:node',
     ]);
-    $this->stopCollectingMessages();
-    $this->assertEmpty($this->migrateMessages);
-
-    $this->startCollectingMessages();
-    $this->executeMigrations([
-      'd7_entity_location_widget_settings:node',
-      'd7_entity_location_formatter_settings:node',
-    ]);
-    $this->stopCollectingMessages();
-    $this->assertEmpty($this->migrateMessages);
-  }
-
-  /**
-   * Execute a migration's dependencies followed by the migration.
-   *
-   * @param string $plugin_id
-   *   The migration id to execute.
-   */
-  protected function executeMigrationWithDependencies(string $plugin_id): void {
-    $migration_plugin_manager = $this->container->get('plugin.manager.migration');
-    assert($migration_plugin_manager instanceof MigrationPluginManagerInterface);
-    $migrations = $migration_plugin_manager->createInstances($plugin_id);
-    foreach ($migrations as $migration) {
-      $this->executeMigrationDependencies($migration);
-      $this->executeMigration($migration);
-    }
-  }
-
-  /**
-   * Find and execute a migration's dependencies.
-   *
-   * @param \Drupal\migrate\Plugin\MigrationInterface $migration
-   *   The Migration from which to execute dependencies.
-   */
-  protected function executeMigrationDependencies(MigrationInterface $migration): void {
-    $dependencies = $migration->getMigrationDependencies();
-    foreach ($dependencies['required'] as $dependency) {
-      $plugin = $this->getMigration($dependency);
-      if (!$plugin->allRowsProcessed()) {
-        $this->executeMigrationDependencies($plugin);
-        $this->executeMigration($plugin);
-      }
-    }
-    foreach ($dependencies['optional'] as $dependency) {
-      if ($plugin = $this->getMigration($dependency)) {
-        if (!$plugin->allRowsProcessed()) {
-          $this->executeMigrationDependencies($plugin);
-          $this->executeMigration($plugin);
-        }
-      }
-    }
   }
 
 }
