@@ -156,7 +156,7 @@ class LocationMigrationTest extends LocationMigrationTestBase {
 
     // Drupal 8.8.x only has 'classic' node migrations.
     // @see https://www.drupal.org/node/3105503
-    if (version_compare(\Drupal::VERSION, '8.8', '>')) {
+    if (!version_compare(\Drupal::VERSION, '8.9.x', '<')) {
       foreach ($test_cases as $test_case_label => $provided_data) {
         $new_test_case_label = preg_replace('/^Classic node migration/', 'Complete node migration', $test_case_label);
         $provided_data['Classic node migration'] = FALSE;

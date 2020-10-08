@@ -90,12 +90,12 @@ class Location extends FieldPluginBase {
     LocationMigration::mergeDerivedRequiredDependencies(
       $migration_dependencies,
       ['d7_field_location'],
-      [$data['entity_type']],
-      );
+      [$data['entity_type']]
+    );
     LocationMigration::mergeDerivedRequiredDependencies(
       $migration_dependencies,
       ['d7_field_location_instance'],
-      [$data['entity_type'], $data['bundle']],
+      [$data['entity_type'], $data['bundle']]
     );
     $migration->set('migration_dependencies', $migration_dependencies);
   }
