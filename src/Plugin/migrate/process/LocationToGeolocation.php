@@ -36,12 +36,12 @@ class LocationToGeolocation extends LocationProcessPluginBase {
       $location_data = $this->getLocationProperties($lid);
       $latitude = $location_data['latitude'] ?? self::COORDINATE_EMPTY_VALUE;
       $longitude = $location_data['longitude'] ?? self::COORDINATE_EMPTY_VALUE;
-      $geolocation_source = $location_data['source'] ?? 0;
+      $known_geolocation_source = !empty($location_data['source']);
       // The "0.000000" values are the default values in Drupal 7, but that's
       // also a valid coordinate. But if the geolocation source is unknown (so
-      // "$geolocation_source" is zero), it means that these properties
+      // "$known_geolocation_source" is FALSE), it means that these properties
       // are empty.
-      $source_is_not_empty = ((string) $latitude) !== self::COORDINATE_EMPTY_VALUE || ((string) $longitude) !== self::COORDINATE_EMPTY_VALUE || $geolocation_source !== 0;
+      $source_is_not_empty = $latitude !== self::COORDINATE_EMPTY_VALUE || $longitude !== self::COORDINATE_EMPTY_VALUE || $known_geolocation_source;
 
       $processed_values[] = $source_is_not_empty
         ? ['lat' => $latitude, 'lng' => $longitude]

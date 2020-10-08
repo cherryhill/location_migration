@@ -54,7 +54,14 @@ class LocationMigrationTest extends LocationMigrationTestBase {
    *
    * @dataProvider providerLocationMigrations
    */
-  public function testLocationMigrations(bool $classic_node_migration) {
+  public function testLocationMigrations(bool $classic_node_migration, array $disabled_source_modules, array $modules_to_install, array $expected_features) {
+    if (!empty($disabled_source_modules)) {
+      $this->sourceDatabase->update('system')
+        ->fields(['status' => 0])
+        ->condition('name', $disabled_source_modules, 'IN')
+        ->execute();
+    }
+
     if (!empty($modules_to_install)) {
       $module_installer = $this->container->get('module_installer');
       assert($module_installer instanceof ModuleInstallerInterface);
@@ -62,7 +69,13 @@ class LocationMigrationTest extends LocationMigrationTestBase {
     }
 
     // Execute the relevant migrations.
-    $this->executeRelevantMigrations($classic_node_migration);
+    $this->executeRelevantMigrations($classic_node_migration, $expected_features['entity']);
+
+    $this->assertTerm1FieldValues($expected_features);
+    $this->assertUser2FieldValues($expected_features);
+    $this->assertNode1FieldValues($expected_features);
+    $this->assertNode2FieldValues($expected_features);
+    $this->assertNode3FieldValues($expected_features);
   }
 
   /**
@@ -73,20 +86,82 @@ class LocationMigrationTest extends LocationMigrationTestBase {
    */
   public function providerLocationMigrations() {
     $test_cases = [
-      'Classic node migration' => [
+      'Classic node migration; with entity location; address, location and email' => [
         'Classic node migration' => TRUE,
+        'Disabled source modules' => [],
+        'Enabled destination modules' => [],
+        'Expected features' => [
+          'entity' => TRUE,
+          'email' => TRUE,
+          'fax' => FALSE,
+          'phone' => FALSE,
+          'www' => FALSE,
+        ],
       ],
-      'Complete node migration' => [
-        'Classic node migration' => FALSE,
+      'Classic node migration; with entity location; address, location, email, telephone and link' => [
+        'Classic node migration' => TRUE,
+        'Disabled source modules' => [],
+        'Enabled destination modules' => [
+          'link',
+          'telephone',
+        ],
+        'Expected features' => [
+          'entity' => TRUE,
+          'email' => TRUE,
+          'fax' => TRUE,
+          'phone' => TRUE,
+          'www' => TRUE,
+        ],
+      ],
+      'Classic node migration; no entity location, only address and location' => [
+        'Classic node migration' => TRUE,
+        'Disabled source modules' => [
+          'location_node',
+          'location_user',
+          'location_taxonomy',
+          'location_email',
+          'location_fax',
+          'location_phone',
+          'location_www',
+        ],
+        'Enabled destination modules' => [],
+        'Expected features' => [
+          'entity' => FALSE,
+          'email' => FALSE,
+          'fax' => FALSE,
+          'phone' => FALSE,
+          'www' => FALSE,
+        ],
+      ],
+      'Classic node migration; no entity location; address, location, email, telephone and link' => [
+        'Classic node migration' => TRUE,
+        'Disabled source modules' => [
+          'location_node',
+          'location_user',
+          'location_taxonomy',
+        ],
+        'Enabled destination modules' => [
+          'link',
+          'telephone',
+        ],
+        'Expected features' => [
+          'entity' => FALSE,
+          'email' => TRUE,
+          'fax' => TRUE,
+          'phone' => TRUE,
+          'www' => TRUE,
+        ],
       ],
     ];
 
     // Drupal 8.8.x only has 'classic' node migrations.
     // @see https://www.drupal.org/node/3105503
-    if (version_compare(\Drupal::VERSION, '8.9', '<')) {
-      $test_cases = array_filter($test_cases, function ($test_case) {
-        return $test_case['Classic node migration'];
-      });
+    if (version_compare(\Drupal::VERSION, '8.8', '>')) {
+      foreach ($test_cases as $test_case_label => $provided_data) {
+        $new_test_case_label = preg_replace('/^Classic node migration/', 'Complete node migration', $test_case_label);
+        $provided_data['Classic node migration'] = FALSE;
+        $test_cases[$new_test_case_label] = $provided_data;
+      }
     }
 
     return $test_cases;

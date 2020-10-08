@@ -76,8 +76,10 @@ abstract class LocationMigrationTestBase extends MigrateDrupalTestBase {
    * @param bool $classic_node_migration
    *   Whether node migrations should be executed with the classic node
    *   migration or not.
+   * @param bool $with_entity_locations
+   *   Whether entity location migrations should be executed.
    */
-  protected function executeRelevantMigrations(bool $classic_node_migration = FALSE): void {
+  protected function executeRelevantMigrations(bool $classic_node_migration = FALSE, bool $with_entity_locations = TRUE): void {
     // Execute file migrations if fixture path is provided.
     if ($fs_fixture_path = $this->getFilesystemFixturePath()) {
       foreach (['d7_file', 'd7_file_private'] as $file_migration_plugin_id) {
@@ -101,36 +103,57 @@ abstract class LocationMigrationTestBase extends MigrateDrupalTestBase {
     ]);
     $this->stopCollectingMessages();
 
-    $this->executeMigrations([
-      'd7_taxonomy_vocabulary',
-      'd7_entity_location_field:taxonomy_term',
-      'd7_entity_location_field_instance:taxonomy_term:vocabulary_1',
-      'd7_entity_location_field_widget:taxonomy_term:vocabulary_1',
-      'd7_entity_location_field_formatter:taxonomy_term:vocabulary_1',
-      'd7_taxonomy_term:vocabulary_1',
-    ]);
+    $this->executeMigrations($with_entity_locations
+      ? [
+        'd7_taxonomy_vocabulary',
+        'd7_entity_location_field:taxonomy_term',
+        'd7_entity_location_field_instance:taxonomy_term:vocabulary_1',
+        'd7_entity_location_field_widget:taxonomy_term:vocabulary_1',
+        'd7_entity_location_field_formatter:taxonomy_term:vocabulary_1',
+        'd7_taxonomy_term:vocabulary_1',
+      ]
+      : [
+        'd7_taxonomy_vocabulary',
+        'd7_taxonomy_term:vocabulary_1',
+      ]
+    );
 
-    $this->executeMigrations([
-      'd7_user_role',
-      'd7_entity_location_field:user',
-      'd7_entity_location_field_instance:user:user',
-      'd7_entity_location_field_widget:user:user',
-      'd7_entity_location_field_formatter:user:user',
-      'd7_user',
-    ]);
+    $this->executeMigrations($with_entity_locations
+      ? [
+        'd7_user_role',
+        'd7_entity_location_field:user',
+        'd7_entity_location_field_instance:user:user',
+        'd7_entity_location_field_widget:user:user',
+        'd7_entity_location_field_formatter:user:user',
+        'd7_user',
+      ]
+      : [
+        'd7_user_role',
+        'd7_user',
+      ]
+    );
 
     $node_migration_base = $classic_node_migration ? 'd7_node' : 'd7_node_complete';
-    $this->executeMigrations([
-      'd7_field_location:node',
-      'd7_field_location_instance:node',
-      'd7_entity_location_field:node',
-      'd7_entity_location_field_instance:node',
-      'd7_entity_location_field_widget:node',
-      'd7_entity_location_field_formatter:node',
-      $node_migration_base,
-      'd7_field_location_widget:node',
-      'd7_field_location_formatter:node',
-    ]);
+    $this->executeMigrations($with_entity_locations
+      ? [
+        'd7_field_location:node',
+        'd7_field_location_instance:node',
+        'd7_entity_location_field:node',
+        'd7_entity_location_field_instance:node',
+        'd7_entity_location_field_widget:node',
+        'd7_entity_location_field_formatter:node',
+        $node_migration_base,
+        'd7_field_location_widget:node',
+        'd7_field_location_formatter:node',
+      ]
+      : [
+        'd7_field_location:node',
+        'd7_field_location_instance:node',
+        $node_migration_base,
+        'd7_field_location_widget:node',
+        'd7_field_location_formatter:node',
+      ]
+    );
   }
 
 }
