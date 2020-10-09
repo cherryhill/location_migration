@@ -55,14 +55,16 @@ class D7EntityLocationDeriver extends LocationDeriverBase {
         );
       }
 
-      switch ($entity_type) {
-        case 'node':
-          $derivative_definition['migration_dependencies']['required'][] = 'd7_node_type';
-          break;
+      if ($bundle) {
+        switch ($entity_type) {
+          case 'node':
+            $derivative_definition['migration_dependencies']['required'][] = 'd7_node_type';
+            break;
 
-        case 'taxonomy_term':
-          $derivative_definition['migration_dependencies']['required'][] = 'd7_taxonomy_vocabulary';
-          break;
+          case 'taxonomy_term':
+            $derivative_definition['migration_dependencies']['required'][] = 'd7_taxonomy_vocabulary';
+            break;
+        }
       }
 
       $this->applyDerivativeLabel($derivative_definition);
