@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\location_migration\Traits;
 
+use Drupal\Core\Database\Database;
+use Drupal\Core\Database\Driver\sqlite\Connection as SQLiteConnection;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 use Drupal\taxonomy\TermInterface;
@@ -267,6 +269,7 @@ trait LocationMigrationAssertionsTrait {
     $expected_features = $expected_features + static::getDefaultFieldExpectationConfiguration();
     $node = $this->container->get('entity_type.manager')->getStorage('node')->load(2);
     assert($node instanceof NodeInterface);
+    $destination_is_sqlite = Database::getConnection() instanceof SQLiteConnection;
 
     $expected_entity_structure = [
       'nid' => [['value' => 2]],
@@ -300,12 +303,12 @@ trait LocationMigrationAssertionsTrait {
       ],
       'field_location_geoloc' => [
         [
-          'lat' => '0',
-          'lng' => '0',
+          'lat' => $destination_is_sqlite ? '0.0' : '0',
+          'lng' => $destination_is_sqlite ? '0.0' : '0',
           'lat_sin' => 0.0,
           'lat_cos' => 1.0,
           'lng_rad' => 0.0,
-          'value' => '0, 0',
+          'value' => $destination_is_sqlite ? '0.0, 0.0' : '0, 0',
         ],
       ],
     ];
