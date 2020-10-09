@@ -77,7 +77,8 @@ provide.
 ##  Log in to your test site and make the necessary changes
 
 These necessary changes could be for instance:
-- Someone found a bug that can be reproduced with a well-prepared data structure.
+- Someone found a bug that can be reproduced with a well-prepared data
+  structure.
 - The Drupal 7 core, or one of the contrib modules that the Drupal 7 fixture
   uses got a new release, and we have to update the fixture database (and even
   the drush make file).
