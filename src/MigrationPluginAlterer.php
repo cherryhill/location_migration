@@ -2,7 +2,9 @@
 
 namespace Drupal\location_migration;
 
+use Drupal\Core\Database\DatabaseExceptionWrapper;
 use Drupal\location_migration\Plugin\migrate\source\EntityLocationFieldInstance;
+use Drupal\migrate\Exception\RequirementsException;
 use Drupal\migrate\Plugin\MigrationDeriverTrait;
 use Drupal\migrate\Row;
 
@@ -16,7 +18,7 @@ class MigrationPluginAlterer {
   use MigrationDeriverTrait;
 
   /**
-   * Adds the required location dependencies to content entity migrations.
+   * Finalizes migration plugin's migration dependencies.
    *
    * @param array[] $definitions
    *   An array of the available migration plugin definitions, keyed by their
@@ -27,7 +29,22 @@ class MigrationPluginAlterer {
       $migration_tags = $migration_plugin['migration_tags'] ?? [];
       return in_array('Drupal 7', $migration_tags, TRUE);
     });
+    static::refineMigrationDependencies($d7_definitions);
+    static::refineOptionallyDerivedMigrationDependencies($d7_definitions);
 
+    foreach ($d7_definitions as $plugin_id => $plugin_definition) {
+      $definitions[$plugin_id] = $plugin_definition;
+    }
+  }
+
+  /**
+   * Adds the required location dependencies to content entity migrations.
+   *
+   * @param array[] $d7_definitions
+   *   An array of the available Drupal 7 migration plugin definitions, keyed by
+   *   their ID.
+   */
+  public static function refineMigrationDependencies(array &$d7_definitions) {
     // Location Migration creates "user", "node" or "taxonomy_term" derivatives
     // for migrations using "d7_entity_location" source only when the
     // corresponding location submodule is enabled.
@@ -152,9 +169,9 @@ class MigrationPluginAlterer {
         );
       }
       foreach ($migration_ids_to_extend as $migration_id_to_extend) {
-        $definition_tags = $definitions[$migration_id_to_extend]['migration_tags'] ?? [];
-        $definitions[$migration_id_to_extend]['migration_dependencies']['required'][] = $entity_location_migration_plugin_id;
-        $definitions[$migration_id_to_extend]['migration_tags'] = array_unique(
+        $definition_tags = $d7_definitions[$migration_id_to_extend]['migration_tags'] ?? [];
+        $d7_definitions[$migration_id_to_extend]['migration_dependencies']['required'][] = $entity_location_migration_plugin_id;
+        $d7_definitions[$migration_id_to_extend]['migration_tags'] = array_unique(
           array_merge($definition_tags, [LocationMigration::LOCATION_MIGRATION_ALTER_DONE])
         );
       }
@@ -183,7 +200,7 @@ class MigrationPluginAlterer {
     foreach ($entity_migration_plugin_ids_with_entity_location as $entity_type_id => $content_migration_plugin_ids) {
 
       foreach ($content_migration_plugin_ids as $content_migration_plugin_id) {
-        $definition = &$definitions[$content_migration_plugin_id];
+        $definition = &$d7_definitions[$content_migration_plugin_id];
         $bundle = $definition['source']['node_type'] ?? $definition['source']['bundle'] ?? 'user';
         $entity_location_cardinality = $entity_location_cardinalities[$entity_type_id][$bundle];
         $base_name = LocationMigration::getEntityLocationFieldBaseName($entity_type_id, $entity_location_cardinality);
@@ -214,6 +231,131 @@ class MigrationPluginAlterer {
           'plugin' => 'location_www_to_link',
         ] + $process_base;
       }
+    }
+  }
+
+  /**
+   * Adds the required location dependencies to content entity migrations.
+   *
+   * @param array[] $d7_definitions
+   *   An array of the available Drupal 7 migration plugin definitions, keyed by
+   *   their ID.
+   */
+  public static function refineOptionallyDerivedMigrationDependencies(array &$d7_definitions) {
+    $entity_location_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
+      $migration_tags = $migration_plugin['migration_tags'] ?? [];
+      return in_array(LocationMigration::ENTITY_LOCATION_MIGRATION_TAG, $migration_tags, TRUE);
+    });
+
+    $node_type_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
+      return $migration_plugin['id'] === 'd7_node_type';
+    });
+    $node_type_migrations_per_bundle = [];
+    foreach ($node_type_migrations as $id => $definition) {
+      if (!empty($definition['source']['node_type'])) {
+        $node_type_migrations_per_bundle[$definition['source']['node_type']][] = $id;
+      }
+    }
+
+    $vocabulary_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
+      return $migration_plugin['id'] === 'd7_taxonomy_vocabulary';
+    });
+    $vocabulary_migrations_per_bundle = [];
+    foreach ($vocabulary_migrations as $id => $definition) {
+      if (!empty($definition['source']['bundle'])) {
+        $vocabulary_migrations_per_bundle[$definition['source']['bundle']][] = $id;
+      }
+    }
+
+    // View mode migrations are a bit special. It is possible that e.g. user
+    // does not have related view mode migrations.
+    $view_mode_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
+      return $migration_plugin['id'] === 'd7_view_modes' && !empty($migration_plugin['source']['entity_type']);
+    });
+    $view_mode_migrations_per_entity_type = [];
+    foreach ($view_mode_migrations as $id => $definition) {
+      $view_mode_migrations_per_entity_type[$definition['source']['entity_type']][] = $id;
+    }
+
+    $entity_types_with_view_mode_migration = [];
+    if (!empty($view_mode_migrations) && !empty($view_mode_migrations_per_entity_type)) {
+      $view_mode_source = static::getSourcePlugin('d7_view_mode');
+      try {
+        $view_mode_source->checkRequirements();
+      }
+      catch (RequirementsException $e) {
+      }
+
+      try {
+        foreach ($view_mode_source as $view_mode_row) {
+          assert($view_mode_row instanceof Row);
+          $source = $view_mode_row->getSource();
+          $entity_types_with_view_mode_migration[$source['entity_type']] = $source['entity_type'];
+        }
+      }
+      catch (DatabaseExceptionWrapper $e) {
+      }
+    }
+
+    foreach ($entity_location_migrations as $elm_plugin_id => $elm_plugin_definition) {
+      $entity_type = $elm_plugin_definition['source']['entity_type'];
+      $bundle = $elm_plugin_definition['source']['bundle'] ?? NULL;
+      $original_dependencies = $elm_plugin_definition['migration_dependencies']['required'] ?? [];
+      $new_dependencies = [];
+
+      if (empty($original_dependencies)) {
+        continue;
+      }
+
+      foreach ($elm_plugin_definition['migration_dependencies']['required'] as $dependency_key => $dependency_id) {
+        switch ($dependency_id) {
+          case 'd7_node_type':
+            if (!empty($node_type_migrations_per_bundle[$bundle])) {
+              unset($original_dependencies[$dependency_key]);
+              $new_dependencies = array_unique(
+                array_merge(
+                  $new_dependencies,
+                  $node_type_migrations_per_bundle[$bundle]
+                )
+              );
+            }
+            break;
+
+          case 'd7_taxonomy_vocabulary':
+            if (!empty($vocabulary_migrations_per_bundle[$bundle])) {
+              unset($original_dependencies[$dependency_key]);
+              $new_dependencies = array_unique(
+                array_merge(
+                  $new_dependencies,
+                  $vocabulary_migrations_per_bundle[$bundle]
+                )
+              );
+            }
+            break;
+
+          case 'd7_view_modes':
+            if (empty($entity_types_with_view_mode_migration[$entity_type])) {
+              unset($original_dependencies[$dependency_key]);
+            }
+            elseif (!empty($view_mode_migrations_per_entity_type[$entity_type])) {
+              unset($original_dependencies[$dependency_key]);
+              $new_dependencies = array_unique(
+                array_merge(
+                  $new_dependencies,
+                  $view_mode_migrations_per_entity_type[$entity_type]
+                )
+              );
+            }
+            break;
+        }
+      }
+
+      $d7_definitions[$elm_plugin_id]['migration_dependencies']['required'] = array_unique(
+        array_merge(
+          $original_dependencies,
+          $new_dependencies
+        )
+      );
     }
   }
 
