@@ -579,10 +579,12 @@ trait LocationMigrationAssertionsTrait {
     'langcode',
     'login',
     'pass',
+    'path',
     'preferred_admin_langcode',
     'preferred_langcode',
     'roles',
     'timezone',
+    'user_picture',
     'uuid',
   ];
 
@@ -595,6 +597,7 @@ trait LocationMigrationAssertionsTrait {
     'uuid',
     'revision_id',
     'langcode',
+    'path',
     'revision_created',
     'revision_user',
     'revision_log_message',
