@@ -244,7 +244,8 @@ class MigrationPluginAlterer {
   public static function refineOptionallyDerivedMigrationDependencies(array &$d7_definitions) {
     $entity_location_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
       $migration_tags = $migration_plugin['migration_tags'] ?? [];
-      return in_array(LocationMigration::ENTITY_LOCATION_MIGRATION_TAG, $migration_tags, TRUE);
+      return in_array(LocationMigration::ENTITY_LOCATION_MIGRATION_TAG, $migration_tags, TRUE) ||
+        in_array(LocationMigration::FIELD_LOCATION_MIGRATION_TAG, $migration_tags, TRUE);
     });
 
     $node_type_migrations = array_filter($d7_definitions, function (array $migration_plugin) {
