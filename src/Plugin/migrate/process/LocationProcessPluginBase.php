@@ -159,19 +159,19 @@ abstract class LocationProcessPluginBase extends ProcessPluginBase implements Co
    *   was found.
    */
   protected function getLocationIds($values, Row $row): array {
-    $lids_from_entity = $values === NULL && $this->configuration['entity_type_id'] !== NULL
-      ? $this->getEntityLocationIds($row)
-      : NULL;
+    if ($this->configuration['entity_type_id'] !== NULL) {
+      return $this->getEntityLocationIds($row);
+    }
+
     if (is_array($values)) {
       ksort($values);
     }
-    $lids_from_value = array_reduce($values ?? [], function (array $carry, array $value) {
+    return array_reduce($values ?? [], function (array $carry, array $value) {
       if (!empty($value['lid'])) {
         $carry[] = $value['lid'];
       }
       return $carry;
     }, []);
-    return !empty($lids_from_value) ? $lids_from_value : $lids_from_entity;
   }
 
   /**
