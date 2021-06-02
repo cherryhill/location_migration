@@ -44,9 +44,13 @@ class Location extends FieldPluginBase {
    */
   public function alterFieldInstanceMigration(MigrationInterface $migration) {
     parent::alterFieldInstanceMigration($migration);
-    $migration->mergeProcessOfProperty('settings', [
+
+    $current_process = $migration->getProcess()['settings'] ?? [];
+    $current_process[] = [
       'plugin' => 'location_to_address_field_settings',
-    ]);
+    ];
+
+    $migration->setProcessOfProperty('settings', $current_process);
   }
 
   /**
