@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 
 /**
- * Process plugin that converts D7 location field values to D8|D9 address field.
+ * Process plugin that converts D7 location field values to D9|D10 address field.
  *
  * @MigrateProcessPlugin(
  *   id = "location_to_address",

@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 
 /**
- * Process plugin that converts D7 location phone values to D8|D9 telephone.
+ * Process plugin that converts D7 location phone values to D9|D10 telephone.
  *
  * @MigrateProcessPlugin(
  *   id = "location_phone_to_telephone",

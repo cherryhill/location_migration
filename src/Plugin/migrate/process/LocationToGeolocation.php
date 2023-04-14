@@ -7,7 +7,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 
 /**
- * Process plugin that converts D7 location field values to D8|D9 geolocation.
+ * Process plugin that converts D7 location field values to D9|D10 geolocation.
  *
  * @MigrateProcessPlugin(
  *   id = "location_to_geolocation",

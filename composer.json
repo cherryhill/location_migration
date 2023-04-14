@@ -1,6 +1,6 @@
 {
     "name": "drupal/location_migration",
-    "description": "Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9",
+    "description": "Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9 or 10",
     "type": "drupal-module",
     "license": "GPL-2.0-or-later",
     "homepage": "https://www.drupal.org/project/location_migration",
