@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 
 /**
- * Process plugin that converts D7 location "www" values to D8|D9 link.
+ * Process plugin that converts D7 location "www" values to D9|D10 link.
  *
  * @MigrateProcessPlugin(
  *   id = "location_www_to_link",
