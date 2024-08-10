@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\Row;
 
 /**
- * Process plugin that converts D7 location email values to D8|D9 email.
+ * Process plugin that converts D7 location email values to D9|D10 email.
  *
  * @MigrateProcessPlugin(
  *   id = "location_email_to_email",

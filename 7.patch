@@ -1,0 +1,25 @@
+From 3495110b9794d34e3afe59ff38cbc0d8740d42f3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?CZ=C3=96VEK=20Andr=C3=A1s?= <czovekandras@gmail.com>
+Date: Mon, 5 Aug 2024 14:57:59 +0200
+Subject: [PATCH] Issue #3465982 by czigor: Support address 2
+
+---
+ composer.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/composer.json b/composer.json
+index 172dfbc..fa6b53a 100644
+--- a/composer.json
++++ b/composer.json
+@@ -16,7 +16,7 @@
+         "source": "https://git.drupalcode.org/project/location_migration"
+     },
+     "require": {
+-        "drupal/address": "^1.8",
++        "drupal/address": "^1.8 || ^2.0",
+         "drupal/geolocation": "^3.2",
+         "php": ">=7.1"
+     }
+-- 
+GitLab
+

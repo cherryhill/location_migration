@@ -20,7 +20,7 @@ For location data stored in a field,
   field with `_geoloc` field name suffix.
 * When `location_email` is enabled on the source site, the email addresses
   stored for a location will be migrated into a new `email` field with `_email`
-  field name suffix. The `email` field type is available in Drupal 8/9 by
+  field name suffix. The `email` field type is available in Drupal 9/10 by
   default.
 * When `location_fax` is enabled on the source site AND the `telephone` field
   type is available on the destination site (core _Telephone_ module), the fax
@@ -58,7 +58,7 @@ This module depends on the following modules:
 ## INSTALLATION
 
 You can install Location Migration as you would normally install a contributed
-Drupal 8 or 9 module.
+Drupal 9 or 10 module.
 
 ## CONFIGURATION
 

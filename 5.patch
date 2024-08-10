@@ -1,0 +1,146 @@
+From 1abab23ab4fc4c290e7ab0b2da63709302b98c03 Mon Sep 17 00:00:00 2001
+From: Shivam <ershivam75@gmail.com>
+Date: Fri, 14 Apr 2023 13:08:44 +0000
+Subject: [PATCH] Tried to fix automated Drupal 10 compatibility
+
+---
+ README.md                                               | 4 ++--
+ composer.json                                           | 2 +-
+ location_migration.info.yml                             | 4 ++--
+ src/Plugin/migrate/process/LocationEmailToEmail.php     | 2 +-
+ src/Plugin/migrate/process/LocationPhoneToTelephone.php | 2 +-
+ src/Plugin/migrate/process/LocationToAddress.php        | 2 +-
+ src/Plugin/migrate/process/LocationToGeolocation.php    | 2 +-
+ src/Plugin/migrate/process/LocationWwwToLink.php        | 2 +-
+ tests/src/Kernel/Migrate/d7/LocationMigrationTest.php   | 2 +-
+ 9 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/README.md b/README.md
+index 878e59a..9adb17e 100644
+--- a/README.md
++++ b/README.md
+@@ -20,7 +20,7 @@ For location data stored in a field,
+   field with `_geoloc` field name suffix.
+ * When `location_email` is enabled on the source site, the email addresses
+   stored for a location will be migrated into a new `email` field with `_email`
+-  field name suffix. The `email` field type is available in Drupal 8/9 by
++  field name suffix. The `email` field type is available in Drupal 9/10 by
+   default.
+ * When `location_fax` is enabled on the source site AND the `telephone` field
+   type is available on the destination site (core _Telephone_ module), the fax
+@@ -58,7 +58,7 @@ This module depends on the following modules:
+ ## INSTALLATION
+ 
+ You can install Location Migration as you would normally install a contributed
+-Drupal 8 or 9 module.
++Drupal 9 or 10 module.
+ 
+ ## CONFIGURATION
+ 
+diff --git a/composer.json b/composer.json
+index 172dfbc..273b7c0 100644
+--- a/composer.json
++++ b/composer.json
+@@ -1,6 +1,6 @@
+ {
+     "name": "drupal/location_migration",
+-    "description": "Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9",
++    "description": "Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9 or 10",
+     "type": "drupal-module",
+     "license": "GPL-2.0-or-later",
+     "homepage": "https://www.drupal.org/project/location_migration",
+diff --git a/location_migration.info.yml b/location_migration.info.yml
+index 3039886..4c48330 100644
+--- a/location_migration.info.yml
++++ b/location_migration.info.yml
+@@ -1,7 +1,7 @@
+ name: Location Migration
+ type: module
+-description: Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9
+-core_version_requirement: ^8.8 || ^9
++description: Migration plugins for migrating Drupal 7 location data from Drupal 7 to Drupal 9 and 10
++core_version_requirement: ^9.3 || ^10
+ package: Migration
+ dependencies:
+   - address:address
+diff --git a/src/Plugin/migrate/process/LocationEmailToEmail.php b/src/Plugin/migrate/process/LocationEmailToEmail.php
+index 0ac3b5d..0faed79 100644
+--- a/src/Plugin/migrate/process/LocationEmailToEmail.php
++++ b/src/Plugin/migrate/process/LocationEmailToEmail.php
+@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
+ use Drupal\migrate\Row;
+ 
+ /**
+- * Process plugin that converts D7 location email values to D8|D9 email.
++ * Process plugin that converts D7 location email values to D9|D10 email.
+  *
+  * @MigrateProcessPlugin(
+  *   id = "location_email_to_email",
+diff --git a/src/Plugin/migrate/process/LocationPhoneToTelephone.php b/src/Plugin/migrate/process/LocationPhoneToTelephone.php
+index 06df299..d9490b3 100644
+--- a/src/Plugin/migrate/process/LocationPhoneToTelephone.php
++++ b/src/Plugin/migrate/process/LocationPhoneToTelephone.php
+@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
+ use Drupal\migrate\Row;
+ 
+ /**
+- * Process plugin that converts D7 location phone values to D8|D9 telephone.
++ * Process plugin that converts D7 location phone values to D9|D10 telephone.
+  *
+  * @MigrateProcessPlugin(
+  *   id = "location_phone_to_telephone",
+diff --git a/src/Plugin/migrate/process/LocationToAddress.php b/src/Plugin/migrate/process/LocationToAddress.php
+index 62d0c25..ff4be33 100644
+--- a/src/Plugin/migrate/process/LocationToAddress.php
++++ b/src/Plugin/migrate/process/LocationToAddress.php
+@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
+ use Drupal\migrate\Row;
+ 
+ /**
+- * Process plugin that converts D7 location field values to D8|D9 address field.
++ * Process plugin that converts D7 location field values to D9|D10 address field.
+  *
+  * @MigrateProcessPlugin(
+  *   id = "location_to_address",
+diff --git a/src/Plugin/migrate/process/LocationToGeolocation.php b/src/Plugin/migrate/process/LocationToGeolocation.php
+index 8079c32..0047032 100644
+--- a/src/Plugin/migrate/process/LocationToGeolocation.php
++++ b/src/Plugin/migrate/process/LocationToGeolocation.php
+@@ -7,7 +7,7 @@ use Drupal\migrate\MigrateExecutableInterface;
+ use Drupal\migrate\Row;
+ 
+ /**
+- * Process plugin that converts D7 location field values to D8|D9 geolocation.
++ * Process plugin that converts D7 location field values to D9|D10 geolocation.
+  *
+  * @MigrateProcessPlugin(
+  *   id = "location_to_geolocation",
+diff --git a/src/Plugin/migrate/process/LocationWwwToLink.php b/src/Plugin/migrate/process/LocationWwwToLink.php
+index aab30eb..14668b6 100644
+--- a/src/Plugin/migrate/process/LocationWwwToLink.php
++++ b/src/Plugin/migrate/process/LocationWwwToLink.php
+@@ -6,7 +6,7 @@ use Drupal\migrate\MigrateExecutableInterface;
+ use Drupal\migrate\Row;
+ 
+ /**
+- * Process plugin that converts D7 location "www" values to D8|D9 link.
++ * Process plugin that converts D7 location "www" values to D9|D10 link.
+  *
+  * @MigrateProcessPlugin(
+  *   id = "location_www_to_link",
+diff --git a/tests/src/Kernel/Migrate/d7/LocationMigrationTest.php b/tests/src/Kernel/Migrate/d7/LocationMigrationTest.php
+index bab756a..b82f35c 100644
+--- a/tests/src/Kernel/Migrate/d7/LocationMigrationTest.php
++++ b/tests/src/Kernel/Migrate/d7/LocationMigrationTest.php
+@@ -46,7 +46,7 @@ class LocationMigrationTest extends LocationMigrationTestBase {
+    * {@inheritdoc}
+    */
+   public function getDatabaseFixtureFilePath(): string {
+-    return drupal_get_path('module', 'location_migration') . '/tests/fixtures/d7/drupal7_location.php';
++    return \Drupal::service('extension.list.module')->getPath('location_migration') . '/tests/fixtures/d7/drupal7_location.php';
+   }
+ 
+   /**
+-- 
+GitLab
+
