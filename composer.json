@@ -16,7 +16,7 @@
         "source": "https://git.drupalcode.org/project/location_migration"
     },
     "require": {
-        "drupal/address": "^1.8",
+        "drupal/address": "^1.8 || ^2.0",
         "drupal/geolocation": "^3.2",
         "php": ">=7.1"
     }
