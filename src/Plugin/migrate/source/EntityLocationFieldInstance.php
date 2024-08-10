@@ -11,7 +11,6 @@ use Drupal\location_migration\LocationMigration;
 use Drupal\location_migration\Plugin\migrate\DestinationFieldTrait;
 use Drupal\location_migration\Plugin\migrate\process\LocationToAddressFieldInstanceSettings;
 use Drupal\migrate\Plugin\MigrationInterface;
-use Drupal\migrate_drupal\Plugin\migrate\source\DrupalSqlBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,7 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   source_module = "location"
  * )
  */
-class EntityLocationFieldInstance extends DrupalSqlBase implements ContainerFactoryPluginInterface {
+class EntityLocationFieldInstance extends EntityLocationFieldInstanceBase implements ContainerFactoryPluginInterface {
 
   use DestinationFieldTrait;
 

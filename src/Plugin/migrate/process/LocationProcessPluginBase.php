@@ -193,7 +193,7 @@ abstract class LocationProcessPluginBase extends ProcessPluginBase implements Co
     ];
     if (!in_array($entity_type_id, $supported_entity_type_ids, TRUE)) {
       // The given entity type is not supported by Drupal7 Location module.
-      // TODO log.
+      // @todo Consider add some logging.
       throw new MigrateSkipProcessException(sprintf('The given entity type ID "%s" is not supported by Drupal7 Location module.', $entity_type_id));
     }
     $entity_ids = NULL;
